@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: wildroseplains:local
+    ports:
+      - "8080:8080"
+    env_file:
+      - backend/.env
+    environment:
+      NODE_ENV: production
+      PORT: 8080
+      FRONTEND_ORIGINS: http://localhost:8080
+      # Set secrets at runtime or via an .env file; do not hardcode them here.
+      # SHOPIFY_WEBHOOK_SECRET: your-secret
+      # SHOPIFY_STORE_DOMAIN: your-domain.myshopify.com
+      # SHOPIFY_STOREFRONT_TOKEN: your-token
+      # SHOPIFY_VARIANT_ID: your-variant-id
+      # SMTP_HOST: smtp.example.com
+      # SMTP_PORT: "587"
+      # SMTP_USER: username
+      # SMTP_PASS: password
+      # EMAIL_FROM: from@example.com
+      # EMAIL_TO: to@example.com
+

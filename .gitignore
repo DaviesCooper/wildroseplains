@@ -1,0 +1,30 @@
+# Dependency directories
+node_modules/
+
+# Build outputs
+dist/
+build/
+coverage/
+
+# Caches
+.turbo/
+.cache/
+.parcel-cache/
+.vite/
+.eslintcache
+
+# Environment / secrets
+.env
+.env.*
+
+# Logs
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor / OS files
+.DS_Store
+Thumbs.db
+.idea/
+
+
