@@ -168,8 +168,13 @@ export const DeckBoxesPage = () => {
 
     try {
       const checkout = await createCheckout(formData);
+      const redirectUrl = checkout.checkoutUrl;
       setOrderStatus('Order submitted! Redirecting to checkout…');
-      window.open(checkout.checkoutUrl, '_blank', 'noopener,noreferrer');
+      const newTab = window.open(redirectUrl, '_blank', 'noopener,noreferrer');
+      if (!newTab) {
+        // Mobile browsers often block popups; fall back to same-tab navigation.
+        window.location.assign(redirectUrl);
+      }
     } catch (error) {
       setOrderStatus('Could not submit the order. Please try again or email us.');
     } finally {
