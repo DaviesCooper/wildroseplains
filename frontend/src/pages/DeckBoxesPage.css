@@ -363,7 +363,7 @@
 
 .method-toggle {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 0.5rem;
   align-items: stretch;
 }
@@ -425,8 +425,19 @@
 
 .engraving-text-row {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
   gap: 0.5rem;
+}
+
+.engraving-text-row .form-field {
+  min-width: 0;
+}
+
+.engraving-text-row select,
+.engraving-text-row input {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .form-field--compact input {
@@ -695,6 +706,16 @@
 @media (max-width: 640px) {
   .engraving-text-row {
     grid-template-columns: 1fr;
+  }
+
+  .method-toggle {
+    grid-template-columns: repeat(2, minmax(100px, 1fr));
+    gap: 0.35rem;
+  }
+
+  .method-toggle__btn {
+    padding: 0.45rem 0.6rem;
+    font-size: 0.85rem;
   }
 }
 
