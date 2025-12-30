@@ -78,6 +78,7 @@ export const DeckBoxesPage = () => {
   );
   const [isTermsOpen, setIsTermsOpen] = useState(false);
   const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
+  const [checkoutLink, setCheckoutLink] = useState<string | null>(null);
 
   const selectedImages =
     variantImages[selectedVariant] ?? { closed: variantOptions[0].image, open: variantOptions[0].image };
@@ -119,6 +120,7 @@ export const DeckBoxesPage = () => {
   const handleOrder = async () => {
     setIsOrdering(true);
     setOrderStatus(null);
+    setCheckoutLink(null);
 
     const engravingMethodsPayload = faces.reduce<Record<Face, EngravingMethod>>((acc, face) => {
       acc[face] = faceEngravings[face].method;
@@ -183,6 +185,7 @@ export const DeckBoxesPage = () => {
       const checkout = await createCheckout(formData);
       const redirectUrl = checkout.checkoutUrl;
       setOrderStatus('Order submitted! Redirecting to checkout…');
+      setCheckoutLink(redirectUrl);
       openCheckout(redirectUrl);
     } catch (error) {
       setOrderStatus('Could not submit the order. Please try again or email us.');
@@ -298,6 +301,14 @@ export const DeckBoxesPage = () => {
           {orderStatus && (
             <p className="order-status" role="status">
               {orderStatus}
+            </p>
+          )}
+          {checkoutLink && (
+            <p className="order-status" role="status">
+              Checkout link ready:{' '}
+              <a href={checkoutLink} target="_blank" rel="noopener noreferrer">
+                Open checkout
+              </a>
             </p>
           )}
         </div>
