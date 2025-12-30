@@ -12,7 +12,7 @@ export type GalleryResponse = {
 
 export const createCheckout = async (payload: FormData): Promise<CheckoutResponse> => {
   // Same origin as the frontend
-  const response = await fetch(`/api/checkout`, {
+  const response = await fetch(`/checkout`, {
     method: 'POST',
     body: payload,
   });
@@ -26,7 +26,7 @@ export const createCheckout = async (payload: FormData): Promise<CheckoutRespons
 };
 
 export const fetchGallery = async (): Promise<string[]> => {
-  const response = await fetch('/api/gallery', { method: 'GET' });
+  const response = await fetch('/gallery', { method: 'GET' });
   const contentType = response.headers.get('content-type') ?? '';
   const bodyText = await response.text();
 

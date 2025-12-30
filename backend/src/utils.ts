@@ -93,3 +93,13 @@ export const isLocalhostOrigin = (origin: string) => {
   return origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:');
 };
 
+export const redact = (value: unknown) => {
+  if (value === undefined || value === null) {
+    return '<unset>';
+  }
+  if (typeof value !== 'string') {
+    return '<redacted>';
+  }
+  return value.length > 8 ? `<redacted ${value.length} chars>` : '<redacted>';
+};
+

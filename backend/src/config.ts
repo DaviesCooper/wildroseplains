@@ -4,7 +4,7 @@ if (process.env.NODE_ENV !== 'production') {
   dotenv.config();
 }
 
-const defaultFrontendOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173'];
+const defaultFrontendOrigins = ['http://wildroseplains.ca', 'http://www.wildroseplains.ca'];
 const envOrigins =
   process.env.FRONTEND_ORIGINS?.split(',').map((value) => value.trim()).filter(Boolean) ?? [];
 const legacyOrigin = process.env.FRONTEND_ORIGIN ? [process.env.FRONTEND_ORIGIN] : [];
