@@ -81,6 +81,59 @@ app.use(
 
 app.use(morgan('tiny'));
 
+app.use((req, res, next) => {
+  const startedAt = Date.now();
+  const contentType = typeof req.headers['content-type'] === 'string' ? req.headers['content-type'] : '';
+
+  const buildBodySummary = () => {
+    if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
+      return 'body: n/a';
+    }
+
+    if (req.path === '/api/shopify/webhook') {
+      const bufferBody = req.body as Buffer | undefined;
+      const byteLength = bufferBody?.length ?? 0;
+      if (!bufferBody) {
+        return 'body: raw buffer (0 bytes)';
+      }
+      const rawString = bufferBody.toString('utf8');
+      const truncated = rawString.length > 2000 ? `${rawString.slice(0, 2000)}…` : rawString;
+      return `body: shopify raw (${byteLength} bytes) ${truncated}`;
+    }
+
+    if (contentType.includes('multipart/form-data')) {
+      const files = Array.isArray((req as any).files) ? (req as any).files : null;
+      const fileCount = files?.length ?? (files ? 1 : 0);
+      const fieldNames = req.body ? Object.keys(req.body) : [];
+      return `body: multipart (fields=${fieldNames.join(',') || 'none'}, files=${fileCount})`;
+    }
+
+    if (contentType.includes('application/json')) {
+      const body = req.body;
+      if (!body) {
+        return 'body: empty json';
+      }
+      const jsonString = JSON.stringify(body);
+      const truncated = jsonString.length > 500 ? `${jsonString.slice(0, 500)}…` : jsonString;
+      return `body: json ${truncated}`;
+    }
+
+    if (contentType.includes('application/x-www-form-urlencoded')) {
+      const fieldNames = req.body ? Object.keys(req.body) : [];
+      return `body: form fields=${fieldNames.join(',') || 'none'}`;
+    }
+
+    return 'body: not logged (content-type not recognized)';
+  };
+
+  res.on('finish', () => {
+    const durationMs = Date.now() - startedAt;
+    const bodySummary = buildBodySummary();
+    console.log(`[request] ${req.method} ${req.originalUrl} -> ${res.statusCode} (${durationMs}ms); ${bodySummary}`);
+  });
+  next();
+});
+
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
