@@ -1,4 +1,4 @@
-name: Build and deploy to Azure Web App
+name: Push to Azure Container Registry
 
 on:
   push:
@@ -30,12 +30,5 @@ jobs:
           docker push $IMAGE_NAME:$TAG
           docker tag $IMAGE_NAME:$TAG $IMAGE_NAME:latest
           docker push $IMAGE_NAME:latest
-
-      - name: Deploy to Azure Web App (container)
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: ${{ env.WEBAPP_NAME }}
-          publish-profile: ${{ secrets.PUBLISH_PROFILE }}
-          images: $IMAGE_NAME:latest
 
 
