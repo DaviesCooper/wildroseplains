@@ -140,8 +140,8 @@ app.get('/health', (_req, res) => {
 
 app.post('/api/shopify/webhook', express.raw({ type: 'application/json' }), shopifyWebhookHandler);
 
-apiRouter.post('/api/checkout', upload.any(), checkoutHandler);
-apiRouter.get('/api/gallery', galleryHandler);
+apiRouter.post('/checkout', upload.any(), checkoutHandler);
+apiRouter.get('/gallery', galleryHandler);
 
 app.use('/api', apiRouter);
 

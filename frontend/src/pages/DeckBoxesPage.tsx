@@ -113,7 +113,7 @@ export const DeckBoxesPage = () => {
     }
     const newTab = window.open(url, '_blank', 'noopener,noreferrer');
     if (!newTab) {
-      window.location.assign(url);
+      setOrderStatus('Popup blocked—use the checkout link below.');
     }
   };
 
