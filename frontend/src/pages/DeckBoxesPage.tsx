@@ -103,6 +103,19 @@ export const DeckBoxesPage = () => {
     } as const;
   })();
 
+  const isMobile = () => /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  const openCheckout = (url: string) => {
+    if (isMobile()) {
+      window.location.assign(url);
+      return;
+    }
+    const newTab = window.open(url, '_blank', 'noopener,noreferrer');
+    if (!newTab) {
+      window.location.assign(url);
+    }
+  };
+
   const handleOrder = async () => {
     setIsOrdering(true);
     setOrderStatus(null);
@@ -170,11 +183,7 @@ export const DeckBoxesPage = () => {
       const checkout = await createCheckout(formData);
       const redirectUrl = checkout.checkoutUrl;
       setOrderStatus('Order submitted! Redirecting to checkout…');
-      const newTab = window.open(redirectUrl, '_blank', 'noopener,noreferrer');
-      if (!newTab) {
-        // Mobile browsers often block popups; fall back to same-tab navigation.
-        window.location.assign(redirectUrl);
-      }
+      openCheckout(redirectUrl);
     } catch (error) {
       setOrderStatus('Could not submit the order. Please try again or email us.');
     } finally {
