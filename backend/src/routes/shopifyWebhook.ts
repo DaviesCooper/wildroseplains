@@ -2,9 +2,8 @@ import crypto from 'crypto';
 import type { Request, Response } from 'express';
 import { config } from '../config.js';
 import { sendEmail } from '../mailer.js';
-import { loadOrder } from '../orderStore.js';
 import { getContainerClient } from '../storage.js';
-import { SavedOrder, ShopifyAddress } from '../types.js';
+import { EngravingDetails, SavedFile, ShopifyAddress } from '../types.js';
 import { formatEngravingDetails, formatShippingAddress } from '../utils.js';
 
 type ShopifyOrderPayload = {
@@ -22,6 +21,14 @@ type ShopifyOrderPayload = {
     quantity?: number;
     properties?: { name?: string; value?: string }[];
   }[];
+};
+
+type EmbeddedOrderPayload = {
+  variant?: string;
+  finish?: string;
+  engravingMethods?: Record<string, string>;
+  engravingDetails?: unknown;
+  files?: SavedFile[];
 };
 
 const verifyWebhookSignature = (rawBody: Buffer, hmacHeader: string, secret: string) => {
@@ -44,20 +51,31 @@ const findCheckoutId = (payload: ShopifyOrderPayload) =>
 
 const findOrderId = (payload: ShopifyOrderPayload) => payload.order_id?.toString() ?? payload.id?.toString();
 
-const downloadAttachments = async (savedOrder: SavedOrder | null) => {
-  if (!savedOrder?.files?.length) {
+const extractEmbeddedOrder = (payload: ShopifyOrderPayload): EmbeddedOrderPayload | null => {
+  const engravingProperty = payload.line_items
+    ?.flatMap((item) => item?.properties ?? [])
+    .find((property) => property?.name === 'engraving_payload' && property.value);
+
+  if (!engravingProperty?.value) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(engravingProperty.value) as EmbeddedOrderPayload;
+  } catch {
+    return null;
+  }
+};
+
+const downloadAttachments = async (files: SavedFile[] | undefined) => {
+  if (!files?.length) {
     return [];
   }
 
   try {
     const containerClient = await getContainerClient('uploads');
-    const filesWithBlobName = savedOrder.files.filter((file) => Boolean(file.blobName));
-    if (!filesWithBlobName.length) {
-      return [];
-    }
-
     const attachments = await Promise.all(
-      filesWithBlobName.map(async (file) => {
+      files.map(async (file) => {
         const blobName = file.blobName;
         if (!blobName) {
           return null;
@@ -106,7 +124,8 @@ export const shopifyWebhookHandler = async (req: Request, res: Response) => {
   const orderId = findOrderId(payload);
   console.log('Shopify webhook received', { topic, checkoutId, orderId });
 
-  const savedOrder = checkoutId ? await loadOrder(checkoutId) : null;
+  const embeddedOrder = extractEmbeddedOrder(payload);
+  const engravingDetails = embeddedOrder?.engravingDetails as EngravingDetails | undefined;
 
   const shippingAddressSummary = formatShippingAddress(payload.shipping_address);
   const emailSubject = `Shopify order webhook: ${payload.name ?? payload.id ?? 'unknown'} (${topic ?? 'no-topic'})`;
@@ -121,10 +140,10 @@ export const shopifyWebhookHandler = async (req: Request, res: Response) => {
     shippingAddressSummary,
     '',
     'Saved engraving details:',
-    formatEngravingDetails(savedOrder?.engravingDetails),
+    formatEngravingDetails(engravingDetails),
   ].join('\n');
 
-  const attachments = await downloadAttachments(savedOrder);
+  const attachments = await downloadAttachments(embeddedOrder?.files);
 
   try {
     await sendEmail({ subject: emailSubject, text: emailBody, attachments });

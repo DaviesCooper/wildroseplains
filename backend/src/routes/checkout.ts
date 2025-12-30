@@ -1,9 +1,8 @@
 import type { Request, Response } from 'express';
 import { createCheckout, type CheckoutRequest } from '../shopifyClient.js';
 import { getContainerClient } from '../storage.js';
-import { EngravingDetails, Face, faceOrder, SavedOrder } from '../types.js';
+import { EngravingDetails, Face, SavedFile, faceOrder } from '../types.js';
 import { buildBlobName } from '../utils.js';
-import { saveOrder } from '../orderStore.js';
 
 const parseFaceField = (fieldname?: string): Face | undefined => {
   if (!fieldname || !fieldname.startsWith('file-')) {
@@ -42,7 +41,7 @@ export const checkoutHandler = async (req: Request, res: Response) => {
 
   const uploadedFiles = Array.isArray(req.files) ? (req.files as Express.Multer.File[]) : [];
 
-  let files: SavedOrder['files'] = [];
+  let files: SavedFile[] = [];
   try {
     const containerClient = await getContainerClient('uploads');
     const uploads = await Promise.all(
@@ -71,18 +70,22 @@ export const checkoutHandler = async (req: Request, res: Response) => {
   }
 
   try {
-    const checkout = await createCheckout({ variant, finish, engravingMethods });
-    const record: SavedOrder = {
-      checkoutId: checkout.checkoutId,
+    const serializedPayload = JSON.stringify({
       variant,
       finish,
       engravingMethods,
       engravingDetails,
       files,
       createdAt: new Date().toISOString(),
-    };
+    });
 
-    await saveOrder(record);
+    const checkout = await createCheckout({
+      variant,
+      finish,
+      engravingMethods,
+      attributes: [{ key: 'engraving_payload', value: serializedPayload }],
+      lineAttributes: [{ key: 'engraving_payload', value: serializedPayload }],
+    });
     res.json(checkout);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';

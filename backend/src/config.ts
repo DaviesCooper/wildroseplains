@@ -11,7 +11,7 @@ const legacyOrigin = process.env.FRONTEND_ORIGIN ? [process.env.FRONTEND_ORIGIN]
 
 export const config = {
   isDev: process.env.NODE_ENV !== 'production',
-  port: process.env.PORT ?? '4000',
+  port: process.env.PORT ?? '8080',
   frontendOrigins:
     envOrigins.length > 0 ? envOrigins : legacyOrigin.length > 0 ? legacyOrigin : defaultFrontendOrigins,
   shopify: {

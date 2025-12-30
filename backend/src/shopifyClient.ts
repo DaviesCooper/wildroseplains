@@ -5,6 +5,8 @@ export type CheckoutRequest = {
   variant: string;
   finish: string;
   engravingMethods: Record<Face, EngravingMethod>;
+  attributes?: { key: string; value: string }[];
+  lineAttributes?: { key: string; value: string }[];
 };
 
 type CheckoutCreateResponse = {
@@ -52,10 +54,12 @@ export const createCheckout = async (request: CheckoutRequest): Promise<Checkout
     `,
     variables: {
       input: {
+        attributes: request.attributes,
         lines: [
           {
             quantity: 1,
             merchandiseId: variantId,
+            attributes: request.lineAttributes,
           },
         ],
       },
